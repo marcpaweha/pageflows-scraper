@@ -3,7 +3,7 @@ import path from "node:path";
 import pLimit from "p-limit";
 import { discoverAppLinks, expandWithOtherFlows } from "./discover.js";
 import { parseAppFlowPage } from "./parse.js";
-import { downloadScreenshot, slugify } from "./download.js";
+import { downloadScreenshot, downloadVideo, slugify } from "./download.js";
 import { fetchText } from "./http.js";
 
 function parseArgs(argv) {
@@ -12,8 +12,10 @@ function parseArgs(argv) {
     outDir: path.resolve("output"),
     concurrency: 5,
     imageConcurrency: 10,
+    videoConcurrency: 3,
     limit: Infinity,
     dryRun: false,
+    videos: true,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -21,8 +23,10 @@ function parseArgs(argv) {
     else if (a === "--out") args.outDir = path.resolve(argv[++i]);
     else if (a === "--concurrency") args.concurrency = Number(argv[++i]);
     else if (a === "--image-concurrency") args.imageConcurrency = Number(argv[++i]);
+    else if (a === "--video-concurrency") args.videoConcurrency = Number(argv[++i]);
     else if (a === "--limit") args.limit = Number(argv[++i]);
     else if (a === "--dry-run") args.dryRun = true;
+    else if (a === "--no-videos") args.videos = false;
     else if (a === "--help" || a === "-h") {
       console.log(`Usage: node src/main.js [options]
 
@@ -30,8 +34,10 @@ function parseArgs(argv) {
   --out <dir>                Output directory (default: ./output)
   --concurrency <n>          Concurrent page fetches (default: 5)
   --image-concurrency <n>    Concurrent image downloads (default: 10)
+  --video-concurrency <n>    Concurrent video downloads (default: 3)
   --limit <n>                Only process the first n apps (for testing)
-  --dry-run                  Discover and parse only, skip downloading images
+  --no-videos                Skip downloading flow videos (screenshots only)
+  --dry-run                  Discover and parse only, skip downloading images/videos
 `);
       process.exit(0);
     }
@@ -62,6 +68,7 @@ async function main() {
 
   const pageLimit = pLimit(args.concurrency);
   const imageLimit = pLimit(args.imageConcurrency);
+  const videoLimit = pLimit(args.videoConcurrency);
 
   const manifest = [];
   const errors = [];
@@ -85,37 +92,56 @@ async function main() {
           );
           await fs.mkdir(appDir, { recursive: true });
 
-          let downloaded = 0;
-          let skipped = 0;
           const shots = [];
+          let video = null;
 
           if (!args.dryRun) {
-            await Promise.all(
-              data.screenshots.map((shot) =>
-                imageLimit(async () => {
-                  const ext = path.extname(new URL(shot.url).pathname) || ".jpg";
-                  const fileName = `${String(shot.order).padStart(2, "0")}-${slugify(
-                    shot.title
-                  )}${ext}`;
+            const tasks = data.screenshots.map((shot) =>
+              imageLimit(async () => {
+                const ext = path.extname(new URL(shot.url).pathname) || ".jpg";
+                const fileName = `${String(shot.order).padStart(2, "0")}-${slugify(
+                  shot.title
+                )}${ext}`;
+                const destPath = path.join(appDir, fileName);
+                try {
+                  await downloadScreenshot(shot.url, destPath);
+                  shots.push({ ...shot, file: fileName });
+                } catch (err) {
+                  errors.push({
+                    app: data.appSlug,
+                    flow: data.flowSlug,
+                    screenshot: shot.url,
+                    error: err.message,
+                  });
+                }
+              })
+            );
+
+            if (args.videos && data.videoUrl) {
+              tasks.push(
+                videoLimit(async () => {
+                  const ext = path.extname(new URL(data.videoUrl).pathname) || ".mp4";
+                  const fileName = `video${ext}`;
                   const destPath = path.join(appDir, fileName);
                   try {
-                    const result = await downloadScreenshot(shot.url, destPath);
-                    if (result.skipped) skipped++;
-                    else downloaded++;
-                    shots.push({ ...shot, file: fileName });
+                    const result = await downloadVideo(data.videoUrl, destPath);
+                    video = { file: fileName, bytes: result.bytes ?? null };
                   } catch (err) {
                     errors.push({
                       app: data.appSlug,
                       flow: data.flowSlug,
-                      screenshot: shot.url,
+                      video: data.videoUrl,
                       error: err.message,
                     });
                   }
                 })
-              )
-            );
+              );
+            }
+
+            await Promise.all(tasks);
           } else {
             shots.push(...data.screenshots);
+            if (data.videoUrl) video = { url: data.videoUrl };
           }
 
           manifest.push({
@@ -132,6 +158,7 @@ async function main() {
               seconds,
               file,
             })),
+            video,
           });
         } catch (err) {
           errors.push({ app: link.appSlug, flow: link.flowSlug, page: link.url, error: err.message });
@@ -160,7 +187,12 @@ async function main() {
   }
 
   const totalScreenshots = manifest.reduce((sum, m) => sum + m.screenshotCount, 0);
-  log(`\nDone. ${manifest.length} app-flows processed, ${totalScreenshots} screenshots total.`);
+  const totalVideos = manifest.filter((m) => m.video?.file).length;
+  const totalVideoBytes = manifest.reduce((sum, m) => sum + (m.video?.bytes || 0), 0);
+  log(
+    `\nDone. ${manifest.length} app-flows processed, ${totalScreenshots} screenshots total, ` +
+      `${totalVideos} videos (${(totalVideoBytes / 1e9).toFixed(2)} GB).`
+  );
   if (errors.length) log(`${errors.length} errors — see ${path.join(args.outDir, "errors.json")}`);
   log(`Manifest written to ${path.join(args.outDir, "manifest.json")}`);
 }

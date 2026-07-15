@@ -315,6 +315,18 @@ main {
   font-weight: 500;
 }
 
+/* ---------- Flow video ---------- */
+
+.flow-video {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  border-radius: var(--radius);
+  background: #000;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 24px;
+}
+
 /* ---------- Screenshot grid ---------- */
 
 .shot-grid {

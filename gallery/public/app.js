@@ -164,7 +164,10 @@ async function renderApp(appSlug) {
         { class: "card", onclick: () => setHash(appSlug, f.flowSlug) },
         [
           el("div", { class: "card-name", text: f.flowTitle }),
-          el("div", { class: "card-meta", text: `${f.screenshotCount} screenshots` }),
+          el("div", {
+            class: "card-meta",
+            text: `${f.screenshotCount} screenshots${f.videoUrl ? " · video" : ""}`,
+          }),
         ]
       )
     );
@@ -194,6 +197,17 @@ async function renderFlow(appSlug, flowSlug) {
 
   main.innerHTML = "";
   main.appendChild(el("div", { class: "stats", text: `${flow.screenshotCount} screenshots` }));
+
+  if (flow.videoUrl) {
+    main.appendChild(
+      el("video", {
+        class: "flow-video",
+        src: flow.videoUrl,
+        controls: "",
+        preload: "metadata",
+      })
+    );
+  }
 
   lightboxShots = flow.screenshots;
   const grid = el("div", { class: "shot-grid" });

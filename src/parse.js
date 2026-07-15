@@ -36,6 +36,9 @@ export function parseAppFlowPage(html, { flowSlug, appSlug, pageUrl }) {
 
   const screenshots = [...seen.values()].sort((a, b) => a.order - b.order);
 
+  const videoSrc = $("video#productVideo source").first().attr("src");
+  const videoUrl = videoSrc ? (videoSrc.startsWith("http") ? videoSrc : `${BASE}${videoSrc}`) : null;
+
   return {
     pageUrl,
     flowSlug,
@@ -44,5 +47,6 @@ export function parseAppFlowPage(html, { flowSlug, appSlug, pageUrl }) {
     flowTitle,
     pageTitle: title,
     screenshots,
+    videoUrl,
   };
 }

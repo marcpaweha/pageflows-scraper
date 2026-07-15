@@ -19,6 +19,22 @@ try {
   themeCache = {};
 }
 
+// Scraping and gallery-serving happen at different times, so rather than
+// trust a `video` field baked into manifest.json (stale if the scraper was
+// interrupted before rewriting it), look at what's actually on disk. Picks
+// up new videos automatically as later scrape runs add them.
+function findVideo(appSlug, flowSlug) {
+  const dir = path.join(SCRAPER_OUTPUT, appSlug, flowSlug);
+  let files;
+  try {
+    files = fs.readdirSync(dir);
+  } catch {
+    return null;
+  }
+  const file = files.find((f) => /^video\.(mp4|mov|webm)$/i.test(f));
+  return file ? `/screenshots/${appSlug}/${flowSlug}/${file}` : null;
+}
+
 async function mapWithConcurrency(items, limit, fn) {
   const results = new Array(items.length);
   let next = 0;
@@ -98,6 +114,7 @@ async function loadApps() {
           title: s.title,
           url: `/screenshots/${entry.appSlug}/${entry.flowSlug}/${s.file}`,
         })),
+      videoUrl: findVideo(entry.appSlug, entry.flowSlug),
     });
   }
 
