@@ -181,6 +181,40 @@ main {
 
 .flow-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 
+/* ---------- Theme filter ---------- */
+
+.theme-filter {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+
+.theme-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.theme-filter-btn:hover { color: var(--text); }
+.theme-filter-btn.active {
+  background: var(--bg-elevated);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.theme-filter-btn svg { display: block; }
+
 /* ---------- Cards ---------- */
 
 .card {
@@ -211,6 +245,30 @@ main {
   background: var(--bg-sunken);
   position: relative;
   overflow: hidden;
+}
+
+.theme-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.theme-badge-light {
+  background: rgba(255, 255, 255, 0.75);
+  color: #a37e00;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+.theme-badge-dark {
+  background: rgba(20, 20, 26, 0.75);
+  color: #cfc9ff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .card-thumb img {

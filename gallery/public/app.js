@@ -5,9 +5,15 @@ const backBtn = document.getElementById("backBtn");
 const searchInput = document.getElementById("search");
 const searchWrap = document.querySelector(".search-wrap");
 
-let appsIndex = null; // [{appSlug, appName, flowCount, screenshotCount}]
+let appsIndex = null; // [{appSlug, appName, flowCount, screenshotCount, thumbnailUrl, theme}]
 let currentApp = null; // full app detail, cached by slug
 const appCache = new Map();
+let themeFilter = "all"; // "all" | "light" | "dark"
+
+const THEME_ICON = {
+  light: '<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3.2" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5v1.6M8 12.9v1.6M14.5 8h-1.6M3.1 8H1.5M12.5 3.5l-1.1 1.1M4.6 11.4l-1.1 1.1M12.5 12.5l-1.1-1.1M4.6 4.6 3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  dark: '<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M13.5 9.7A5.6 5.6 0 1 1 6.3 2.5a4.6 4.6 0 0 0 7.2 7.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+};
 
 async function getAppsIndex() {
   if (!appsIndex) {
@@ -56,7 +62,9 @@ async function renderHome(filterText = "") {
 
   const apps = await getAppsIndex();
   const q = filterText.trim().toLowerCase();
-  const filtered = q ? apps.filter((a) => a.appName.toLowerCase().includes(q)) : apps;
+  const searched = q ? apps.filter((a) => a.appName.toLowerCase().includes(q)) : apps;
+  const filtered =
+    themeFilter === "all" ? searched : searched.filter((a) => a.theme === themeFilter);
 
   const totalFlows = apps.reduce((s, a) => s + a.flowCount, 0);
   const totalShots = apps.reduce((s, a) => s + a.screenshotCount, 0);
@@ -69,8 +77,35 @@ async function renderHome(filterText = "") {
     })
   );
 
+  const counts = {
+    all: searched.length,
+    light: searched.filter((a) => a.theme === "light").length,
+    dark: searched.filter((a) => a.theme === "dark").length,
+  };
+  const filterBar = el("div", { class: "theme-filter" });
+  for (const key of ["all", "light", "dark"]) {
+    const label = key === "all" ? "All" : key === "light" ? "Light" : "Dark";
+    filterBar.appendChild(
+      el(
+        "button",
+        {
+          class: `theme-filter-btn${themeFilter === key ? " active" : ""}`,
+          onclick: () => {
+            themeFilter = key;
+            renderHome(searchInput.value);
+          },
+        },
+        [
+          key !== "all" ? el("span", { html: THEME_ICON[key] }) : null,
+          el("span", { text: `${label} (${counts[key]})` }),
+        ]
+      )
+    );
+  }
+  main.appendChild(filterBar);
+
   if (filtered.length === 0) {
-    main.appendChild(el("div", { class: "empty", text: "No apps match your search." }));
+    main.appendChild(el("div", { class: "empty", text: "No apps match." }));
     return;
   }
 
@@ -82,6 +117,9 @@ async function renderHome(filterText = "") {
           a.thumbnailUrl
             ? el("img", { src: a.thumbnailUrl, alt: a.appName, loading: "lazy" })
             : el("div", { class: "card-thumb-placeholder", text: a.appName[0] || "?" }),
+          a.theme
+            ? el("div", { class: `theme-badge theme-badge-${a.theme}`, html: THEME_ICON[a.theme] })
+            : null,
         ]),
         el("div", { class: "card-body" }, [
           el("div", { class: "card-name", text: a.appName }),
