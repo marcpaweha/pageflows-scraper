@@ -76,17 +76,20 @@ async function renderHome(filterText = "") {
   const grid = el("div", { class: "app-grid" });
   for (const a of filtered) {
     grid.appendChild(
-      el(
-        "div",
-        { class: "card", onclick: () => setHash(a.appSlug) },
-        [
+      el("div", { class: "card app-card", onclick: () => setHash(a.appSlug) }, [
+        el("div", { class: "card-thumb" }, [
+          a.thumbnailUrl
+            ? el("img", { src: a.thumbnailUrl, alt: a.appName, loading: "lazy" })
+            : el("div", { class: "card-thumb-placeholder", text: a.appName[0] || "?" }),
+        ]),
+        el("div", { class: "card-body" }, [
           el("div", { class: "card-name", text: a.appName }),
           el("div", {
             class: "card-meta",
             text: `${a.flowCount} flow${a.flowCount === 1 ? "" : "s"} · ${a.screenshotCount} screenshots`,
           }),
-        ]
-      )
+        ]),
+      ])
     );
   }
   main.appendChild(grid);

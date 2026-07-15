@@ -41,7 +41,27 @@ function loadApps() {
     });
   }
 
+  for (const app of byApp.values()) {
+    app.thumbnailUrl = pickThumbnail(app);
+  }
+
   return [...byApp.values()].sort((a, b) => a.appName.localeCompare(b.appName));
+}
+
+// Prefer a screenshot titled exactly "Home", then anything home-ish, then just
+// fall back to the first screenshot of the app's richest flow.
+function pickThumbnail(app) {
+  const allShots = app.flows.flatMap((f) => f.screenshots);
+  if (allShots.length === 0) return null;
+
+  const exact = allShots.find((s) => /^home$/i.test(s.title.trim()));
+  if (exact) return exact.url;
+
+  const homeish = allShots.find((s) => /home/i.test(s.title));
+  if (homeish) return homeish.url;
+
+  const richestFlow = app.flows.slice().sort((a, b) => b.screenshotCount - a.screenshotCount)[0];
+  return richestFlow.screenshots[0].url;
 }
 
 let apps = loadApps();
@@ -57,11 +77,12 @@ app.use(compression());
 
 app.get("/api/apps", (req, res) => {
   res.json(
-    apps.map(({ appSlug, appName, flowCount, screenshotCount }) => ({
+    apps.map(({ appSlug, appName, flowCount, screenshotCount, thumbnailUrl }) => ({
       appSlug,
       appName,
       flowCount,
       screenshotCount,
+      thumbnailUrl,
     }))
   );
 });

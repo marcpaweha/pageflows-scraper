@@ -120,6 +120,41 @@ main {
 }
 .card:hover { transform: translateY(-2px); border-color: var(--accent); }
 
+.app-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-thumb {
+  aspect-ratio: 9 / 16;
+  background: var(--border);
+}
+
+.card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.card-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.card-body {
+  padding: 12px 14px;
+}
+
 .card-name {
   font-weight: 600;
   font-size: 15px;
@@ -178,11 +213,14 @@ main {
   inset: 0;
   background: rgba(0, 0, 0, 0.88);
   z-index: 100;
-  display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   gap: 12px;
+}
+
+.lightbox:not([hidden]) {
+  display: flex;
 }
 
 .lightbox img {
