@@ -34,3 +34,18 @@ output/
 ```
 
 Downloads are resumable — re-running skips screenshots that already exist on disk.
+
+## Gallery
+
+`gallery/` is a small web app for browsing the scraped screenshots: an app grid
+(with a preview thumbnail per app), a flow list per app, and a screenshot grid
+with a lightbox viewer.
+
+```
+cd gallery
+npm install
+node server.js
+```
+
+Opens at `http://localhost:4173` and reads `../output/manifest.json` by
+default (override with the `SCRAPER_OUTPUT` env var).

@@ -4,8 +4,7 @@ const express = require("express");
 const compression = require("compression");
 
 const PORT = process.env.PORT || 4173;
-const SCRAPER_OUTPUT =
-  process.env.SCRAPER_OUTPUT || path.join(__dirname, "..", "pageflows-scraper", "output");
+const SCRAPER_OUTPUT = process.env.SCRAPER_OUTPUT || path.join(__dirname, "..", "output");
 const MANIFEST_PATH = path.join(SCRAPER_OUTPUT, "manifest.json");
 
 function loadApps() {
