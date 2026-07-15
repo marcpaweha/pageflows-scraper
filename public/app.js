@@ -3,6 +3,7 @@ const pageTitle = document.getElementById("pageTitle");
 const breadcrumb = document.getElementById("breadcrumb");
 const backBtn = document.getElementById("backBtn");
 const searchInput = document.getElementById("search");
+const searchWrap = document.querySelector(".search-wrap");
 
 let appsIndex = null; // [{appSlug, appName, flowCount, screenshotCount}]
 let currentApp = null; // full app detail, cached by slug
@@ -51,7 +52,7 @@ async function renderHome(filterText = "") {
   backBtn.hidden = true;
   pageTitle.textContent = "Page Flows Gallery";
   breadcrumb.innerHTML = "";
-  searchInput.hidden = false;
+  searchWrap.hidden = false;
 
   const apps = await getAppsIndex();
   const q = filterText.trim().toLowerCase();
@@ -97,7 +98,7 @@ async function renderHome(filterText = "") {
 
 async function renderApp(appSlug) {
   backBtn.hidden = false;
-  searchInput.hidden = true;
+  searchWrap.hidden = true;
   const app = await getApp(appSlug);
   if (!app) {
     main.innerHTML = "";
@@ -138,7 +139,7 @@ let lightboxIndex = 0;
 
 async function renderFlow(appSlug, flowSlug) {
   backBtn.hidden = false;
-  searchInput.hidden = true;
+  searchWrap.hidden = true;
   const app = await getApp(appSlug);
   const flow = app && app.flows.find((f) => f.flowSlug === flowSlug);
   if (!app || !flow) {

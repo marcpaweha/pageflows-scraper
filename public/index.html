@@ -4,14 +4,26 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Page Flows Screenshot Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&display=swap"
+  rel="stylesheet"
+/>
 <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <button id="backBtn" class="back-btn" hidden>&larr; Back</button>
+      <button id="backBtn" class="back-btn" hidden>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3.5 5 8l5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+      </button>
       <h1 id="pageTitle">Page Flows Gallery</h1>
-      <input id="search" type="search" placeholder="Search apps…" />
+      <div class="search-wrap">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"/><path d="M14 14l-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input id="search" type="search" placeholder="Search apps…" />
+      </div>
     </div>
     <div id="breadcrumb" class="breadcrumb"></div>
   </header>
